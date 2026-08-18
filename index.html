@@ -1,0 +1,2283 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minhas Finanças</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --shadow: 0 10px 30px rgba(0, 0, 0, .06);
+    }
+
+    body {
+      font-family: Inter, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white;
+      padding: 30px 20px 70px;
+    }
+
+    .header-content {
+      max-width: 1150px;
+      margin: auto;
+    }
+
+    header h1 {
+      font-size: 30px;
+      margin-bottom: 8px;
+    }
+
+    header p {
+      opacity: .85;
+    }
+
+    .container {
+      max-width: 1150px;
+      margin: -40px auto 40px;
+      padding: 0 20px;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      margin-bottom: 25px;
+    }
+
+    .summary-card {
+      background: var(--card);
+      padding: 22px;
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .summary-card .label {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+
+    .summary-card .value {
+      font-size: 27px;
+      font-weight: 700;
+    }
+
+    .balance {
+      border-left: 5px solid var(--primary);
+    }
+
+    .income {
+      border-left: 5px solid var(--success);
+    }
+
+    .expense {
+      border-left: 5px solid var(--danger);
+    }
+
+    .positive {
+      color: var(--success);
+    }
+
+    .negative {
+      color: var(--danger);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 350px 1fr;
+      gap: 22px;
+      align-items: start;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+
+    .card h2 {
+      font-size: 19px;
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 7px;
+    }
+
+    input,
+    select {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 14px;
+      outline: none;
+      background: white;
+      transition: .2s;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, .1);
+    }
+
+    .type-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .type-button {
+      padding: 11px;
+      border-radius: 10px;
+      border: 2px solid var(--border);
+      background: white;
+      cursor: pointer;
+      font-weight: 600;
+      transition: .2s;
+    }
+
+    .type-button.active.income-type {
+      border-color: var(--success);
+      background: #ecfdf5;
+      color: var(--success);
+    }
+
+    .type-button.active.expense-type {
+      border-color: var(--danger);
+      background: #fef2f2;
+      color: var(--danger);
+    }
+
+    .btn {
+      width: 100%;
+      border: none;
+      border-radius: 10px;
+      padding: 13px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: .2s;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn-secondary {
+      background: #f3f4f6;
+      color: var(--text);
+      margin-top: 8px;
+    }
+
+    /* FLUXO DE CAIXA */
+
+    .cash-flow {
+      margin-top: 22px;
+    }
+
+    .cash-flow-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .cash-flow-header h2 {
+      margin-bottom: 0;
+    }
+
+    .month-selector {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .month-selector button {
+      border: none;
+      background: #f3f4f6;
+      width: 35px;
+      height: 35px;
+      border-radius: 9px;
+      cursor: pointer;
+      font-size: 18px;
+    }
+
+    .month-selector button:hover {
+      background: #e5e7eb;
+    }
+
+    #selectedMonth {
+      min-width: 140px;
+      text-align: center;
+      font-weight: 700;
+      text-transform: capitalize;
+    }
+
+    .flow-summary {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 25px;
+    }
+
+    .flow-box {
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      padding: 16px;
+    }
+
+    .flow-box .flow-label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 7px;
+    }
+
+    .flow-box .flow-value {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .chart-container {
+      width: 100%;
+      height: 280px;
+      position: relative;
+      margin-top: 10px;
+    }
+
+    #cashFlowChart {
+      width: 100%;
+      height: 100%;
+    }
+
+    .monthly-table {
+      margin-top: 25px;
+      overflow-x: auto;
+    }
+
+    .monthly-table table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 550px;
+    }
+
+    .monthly-table th,
+    .monthly-table td {
+      padding: 13px 10px;
+      text-align: right;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+
+    .monthly-table th:first-child,
+    .monthly-table td:first-child {
+      text-align: left;
+    }
+
+    .monthly-table th {
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .flow-positive {
+      color: var(--success);
+      font-weight: 700;
+    }
+
+    .flow-negative {
+      color: var(--danger);
+      font-weight: 700;
+    }
+
+    /* FILTROS */
+
+    .filters {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    /* TRANSAÇÕES */
+
+    .transactions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .transaction {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      transition: .2s;
+    }
+
+    .transaction:hover {
+      background: #fafafa;
+    }
+
+    .transaction-left {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      min-width: 0;
+    }
+
+    .icon {
+      width: 43px;
+      height: 43px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .icon-income {
+      background: #ecfdf5;
+    }
+
+    .icon-expense {
+      background: #fef2f2;
+    }
+
+    .transaction-info {
+      min-width: 0;
+    }
+
+    .transaction-description {
+      font-weight: 700;
+      margin-bottom: 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .transaction-meta {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .transaction-right {
+      text-align: right;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .amount {
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .amount.income {
+      color: var(--success);
+    }
+
+    .amount.expense {
+      color: var(--danger);
+    }
+
+    .actions {
+      display: flex;
+      gap: 5px;
+    }
+
+    .action-btn {
+      border: none;
+      background: #f3f4f6;
+      border-radius: 8px;
+      padding: 7px 9px;
+      cursor: pointer;
+    }
+
+    .action-btn:hover {
+      background: #e5e7eb;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 45px 20px;
+      color: var(--muted);
+    }
+
+    .empty-icon {
+      font-size: 45px;
+      margin-bottom: 12px;
+    }
+
+    /* MODAL */
+
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .5);
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 100;
+    }
+
+    .modal.show {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      max-width: 420px;
+      width: 100%;
+      border-radius: 18px;
+      padding: 25px;
+    }
+
+    .modal-content h3 {
+      margin-bottom: 15px;
+    }
+
+    @media (max-width: 850px) {
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .summary {
+        grid-template-columns: 1fr;
+      }
+
+      .filters {
+        grid-template-columns: 1fr;
+      }
+
+      .flow-summary {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 550px) {
+
+      header h1 {
+        font-size: 24px;
+      }
+
+      .container {
+        padding: 0 12px;
+      }
+
+      .card {
+        padding: 18px;
+      }
+
+      .transaction {
+        align-items: flex-start;
+      }
+
+      .transaction-right {
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 5px;
+      }
+
+      .cash-flow-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .flow-summary {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div class="header-content">
+    <h1>💰 Minhas Finanças</h1>
+    <p>Controle suas receitas, despesas e fluxo de caixa.</p>
+  </div>
+</header>
+
+<main class="container">
+
+  <!-- RESUMO GERAL -->
+
+  <section class="summary">
+
+    <div class="summary-card balance">
+      <div class="label">Saldo atual</div>
+      <div class="value" id="balance">R$ 0,00</div>
+    </div>
+
+    <div class="summary-card income">
+      <div class="label">Total de receitas</div>
+      <div class="value positive" id="totalIncome">
+        R$ 0,00
+      </div>
+    </div>
+
+    <div class="summary-card expense">
+      <div class="label">Total de despesas</div>
+      <div class="value negative" id="totalExpense">
+        R$ 0,00
+      </div>
+    </div>
+
+  </section>
+
+  <!-- CADASTRO + TRANSAÇÕES -->
+
+  <section class="grid">
+
+    <!-- FORMULÁRIO -->
+
+    <div class="card">
+
+      <h2 id="formTitle">Nova transação</h2>
+
+      <form id="transactionForm">
+
+        <div class="form-group">
+
+          <label>Tipo</label>
+
+          <div class="type-buttons">
+
+            <button
+              type="button"
+              class="type-button active income-type"
+              id="incomeButton"
+              onclick="setType('income')">
+              ↑ Receita
+            </button>
+
+            <button
+              type="button"
+              class="type-button expense-type"
+              id="expenseButton"
+              onclick="setType('expense')">
+              ↓ Despesa
+            </button>
+
+          </div>
+
+        </div>
+
+        <div class="form-group">
+
+          <label for="description">
+            Descrição
+          </label>
+
+          <input
+            type="text"
+            id="description"
+            placeholder="Ex.: Salário, aluguel..."
+            required>
+
+        </div>
+
+        <div class="form-group">
+
+          <label for="amount">
+            Valor
+          </label>
+
+          <input
+            type="number"
+            id="amount"
+            placeholder="0,00"
+            step="0.01"
+            min="0.01"
+            required>
+
+        </div>
+
+        <div class="form-group">
+
+          <label for="category">
+            Categoria
+          </label>
+
+          <select id="category" required>
+
+            <option value="">
+              Selecione uma categoria
+            </option>
+
+            <option value="Salário">💼 Salário</option>
+            <option value="Freelance">💻 Freelance</option>
+            <option value="Investimentos">📈 Investimentos</option>
+            <option value="Alimentação">🍔 Alimentação</option>
+            <option value="Moradia">🏠 Moradia</option>
+            <option value="Transporte">🚗 Transporte</option>
+            <option value="Saúde">🏥 Saúde</option>
+            <option value="Educação">📚 Educação</option>
+            <option value="Lazer">🎮 Lazer</option>
+            <option value="Compras">🛍️ Compras</option>
+            <option value="Contas">💡 Contas</option>
+            <option value="Outros">📦 Outros</option>
+
+          </select>
+
+        </div>
+
+        <div class="form-group">
+
+          <label for="date">
+            Data
+          </label>
+
+          <input
+            type="date"
+            id="date"
+            required>
+
+        </div>
+
+        <button
+          class="btn btn-primary"
+          type="submit"
+          id="submitButton">
+          Adicionar transação
+        </button>
+
+        <button
+          class="btn btn-secondary"
+          type="button"
+          id="cancelButton"
+          onclick="cancelEdit()"
+          style="display:none">
+          Cancelar edição
+        </button>
+
+      </form>
+
+    </div>
+
+    <!-- TRANSAÇÕES -->
+
+    <div class="card">
+
+      <h2>Transações</h2>
+
+      <div class="filters">
+
+        <select
+          id="filterType"
+          onchange="renderTransactions()">
+
+          <option value="all">
+            Todos os tipos
+          </option>
+
+          <option value="income">
+            Receitas
+          </option>
+
+          <option value="expense">
+            Despesas
+          </option>
+
+        </select>
+
+        <select
+          id="filterCategory"
+          onchange="renderTransactions()">
+
+          <option value="all">
+            Todas as categorias
+          </option>
+
+          <option value="Salário">Salário</option>
+          <option value="Freelance">Freelance</option>
+          <option value="Investimentos">Investimentos</option>
+          <option value="Alimentação">Alimentação</option>
+          <option value="Moradia">Moradia</option>
+          <option value="Transporte">Transporte</option>
+          <option value="Saúde">Saúde</option>
+          <option value="Educação">Educação</option>
+          <option value="Lazer">Lazer</option>
+          <option value="Compras">Compras</option>
+          <option value="Contas">Contas</option>
+          <option value="Outros">Outros</option>
+
+        </select>
+
+        <input
+          type="text"
+          id="search"
+          placeholder="🔎 Buscar..."
+          oninput="renderTransactions()">
+
+      </div>
+
+      <div
+        id="transactions"
+        class="transactions">
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- FLUXO DE CAIXA -->
+
+  <section class="card cash-flow">
+
+    <div class="cash-flow-header">
+
+      <h2>📊 Fluxo de Caixa</h2>
+
+      <div class="month-selector">
+
+        <button onclick="changeFlowMonth(-1)">
+          ‹
+        </button>
+
+        <span id="selectedMonth"></span>
+
+        <button onclick="changeFlowMonth(1)">
+          ›
+        </button>
+
+      </div>
+
+    </div>
+
+    <!-- RESUMO DO MÊS -->
+
+    <div class="flow-summary">
+
+      <div class="flow-box">
+
+        <div class="flow-label">
+          Saldo inicial
+        </div>
+
+        <div
+          class="flow-value"
+          id="flowInitial">
+          R$ 0,00
+        </div>
+
+      </div>
+
+      <div class="flow-box">
+
+        <div class="flow-label">
+          Entradas
+        </div>
+
+        <div
+          class="flow-value positive"
+          id="flowIncome">
+          R$ 0,00
+        </div>
+
+      </div>
+
+      <div class="flow-box">
+
+        <div class="flow-label">
+          Saídas
+        </div>
+
+        <div
+          class="flow-value negative"
+          id="flowExpense">
+          R$ 0,00
+        </div>
+
+      </div>
+
+      <div class="flow-box">
+
+        <div class="flow-label">
+          Saldo final
+        </div>
+
+        <div
+          class="flow-value"
+          id="flowFinal">
+          R$ 0,00
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- GRÁFICO -->
+
+    <div class="chart-container">
+
+      <canvas id="cashFlowChart"></canvas>
+
+    </div>
+
+    <!-- TABELA -->
+
+    <div class="monthly-table">
+
+      <table>
+
+        <thead>
+
+          <tr>
+            <th>Mês</th>
+            <th>Entradas</th>
+            <th>Saídas</th>
+            <th>Resultado</th>
+            <th>Saldo acumulado</th>
+          </tr>
+
+        </thead>
+
+        <tbody id="monthlyFlowTable">
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </section>
+
+</main>
+
+<!-- MODAL -->
+
+<div
+  class="modal"
+  id="deleteModal">
+
+  <div class="modal-content">
+
+    <h3>Excluir transação?</h3>
+
+    <p
+      style="color:#6b7280; margin-bottom:20px;">
+      Essa ação não poderá ser desfeita.
+    </p>
+
+    <button
+      class="btn btn-primary"
+      onclick="confirmDelete()">
+      Sim, excluir
+    </button>
+
+    <button
+      class="btn btn-secondary"
+      onclick="closeDeleteModal()">
+      Cancelar
+    </button>
+
+  </div>
+
+</div>
+
+<script>
+
+  // ==========================================
+  // DADOS
+  // ==========================================
+
+  let transactions =
+    JSON.parse(
+      localStorage.getItem("transactions")
+    ) || [];
+
+  let currentType = "income";
+  let editingId = null;
+  let deleteId = null;
+
+  // Mês exibido no fluxo
+  let flowMonth = new Date();
+
+  const form =
+    document.getElementById("transactionForm");
+
+  const description =
+    document.getElementById("description");
+
+  const amount =
+    document.getElementById("amount");
+
+  const category =
+    document.getElementById("category");
+
+  const date =
+    document.getElementById("date");
+
+  date.value =
+    new Date().toISOString().split("T")[0];
+
+
+  // ==========================================
+  // MOEDA
+  // ==========================================
+
+  function formatCurrency(value) {
+
+    return new Intl.NumberFormat(
+      "pt-BR",
+      {
+        style: "currency",
+        currency: "BRL"
+      }
+    ).format(value);
+
+  }
+
+
+  // ==========================================
+  // TIPO
+  // ==========================================
+
+  function setType(type) {
+
+    currentType = type;
+
+    document
+      .getElementById("incomeButton")
+      .classList.toggle(
+        "active",
+        type === "income"
+      );
+
+    document
+      .getElementById("expenseButton")
+      .classList.toggle(
+        "active",
+        type === "expense"
+      );
+
+  }
+
+
+  // ==========================================
+  // SALVAR
+  // ==========================================
+
+  function saveTransactions() {
+
+    localStorage.setItem(
+      "transactions",
+      JSON.stringify(transactions)
+    );
+
+  }
+
+
+  // ==========================================
+  // FORMULÁRIO
+  // ==========================================
+
+  form.addEventListener(
+    "submit",
+    function(event) {
+
+      event.preventDefault();
+
+      const transaction = {
+
+        id:
+          editingId || Date.now(),
+
+        type:
+          currentType,
+
+        description:
+          description.value.trim(),
+
+        amount:
+          parseFloat(amount.value),
+
+        category:
+          category.value,
+
+        date:
+          date.value
+
+      };
+
+      if (editingId) {
+
+        transactions =
+          transactions.map(item =>
+            item.id === editingId
+              ? transaction
+              : item
+          );
+
+      } else {
+
+        transactions.push(transaction);
+
+      }
+
+      saveTransactions();
+
+      resetForm();
+
+      render();
+
+    }
+  );
+
+
+  // ==========================================
+  // RESET
+  // ==========================================
+
+  function resetForm() {
+
+    form.reset();
+
+    editingId = null;
+
+    setType("income");
+
+    date.value =
+      new Date()
+        .toISOString()
+        .split("T")[0];
+
+    document
+      .getElementById("formTitle")
+      .textContent =
+      "Nova transação";
+
+    document
+      .getElementById("submitButton")
+      .textContent =
+      "Adicionar transação";
+
+    document
+      .getElementById("cancelButton")
+      .style.display =
+      "none";
+
+  }
+
+
+  // ==========================================
+  // EDITAR
+  // ==========================================
+
+  function editTransaction(id) {
+
+    const transaction =
+      transactions.find(
+        item => item.id === id
+      );
+
+    if (!transaction) return;
+
+    editingId = id;
+
+    setType(transaction.type);
+
+    description.value =
+      transaction.description;
+
+    amount.value =
+      transaction.amount;
+
+    category.value =
+      transaction.category;
+
+    date.value =
+      transaction.date;
+
+    document
+      .getElementById("formTitle")
+      .textContent =
+      "Editar transação";
+
+    document
+      .getElementById("submitButton")
+      .textContent =
+      "Salvar alterações";
+
+    document
+      .getElementById("cancelButton")
+      .style.display =
+      "block";
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+
+  }
+
+
+  function cancelEdit() {
+    resetForm();
+  }
+
+
+  // ==========================================
+  // EXCLUIR
+  // ==========================================
+
+  function deleteTransaction(id) {
+
+    deleteId = id;
+
+    document
+      .getElementById("deleteModal")
+      .classList.add("show");
+
+  }
+
+
+  function confirmDelete() {
+
+    transactions =
+      transactions.filter(
+        item => item.id !== deleteId
+      );
+
+    saveTransactions();
+
+    closeDeleteModal();
+
+    render();
+
+  }
+
+
+  function closeDeleteModal() {
+
+    deleteId = null;
+
+    document
+      .getElementById("deleteModal")
+      .classList.remove("show");
+
+  }
+
+
+  // ==========================================
+  // RESUMO
+  // ==========================================
+
+  function renderSummary() {
+
+    const income =
+      transactions
+        .filter(
+          item => item.type === "income"
+        )
+        .reduce(
+          (total, item) =>
+            total + item.amount,
+          0
+        );
+
+    const expense =
+      transactions
+        .filter(
+          item => item.type === "expense"
+        )
+        .reduce(
+          (total, item) =>
+            total + item.amount,
+          0
+        );
+
+    const balance =
+      income - expense;
+
+    document
+      .getElementById("totalIncome")
+      .textContent =
+      formatCurrency(income);
+
+    document
+      .getElementById("totalExpense")
+      .textContent =
+      formatCurrency(expense);
+
+    const balanceElement =
+      document.getElementById("balance");
+
+    balanceElement.textContent =
+      formatCurrency(balance);
+
+    balanceElement.className =
+      "value " +
+      (
+        balance >= 0
+          ? "positive"
+          : "negative"
+      );
+
+  }
+
+
+  // ==========================================
+  // TRANSAÇÕES
+  // ==========================================
+
+  function renderTransactions() {
+
+    const container =
+      document.getElementById(
+        "transactions"
+      );
+
+    const filterType =
+      document.getElementById(
+        "filterType"
+      ).value;
+
+    const filterCategory =
+      document.getElementById(
+        "filterCategory"
+      ).value;
+
+    const search =
+      document
+        .getElementById("search")
+        .value
+        .toLowerCase();
+
+    let filtered =
+      transactions.filter(
+        transaction => {
+
+          const matchesType =
+            filterType === "all" ||
+            transaction.type ===
+              filterType;
+
+          const matchesCategory =
+            filterCategory === "all" ||
+            transaction.category ===
+              filterCategory;
+
+          const matchesSearch =
+            transaction.description
+              .toLowerCase()
+              .includes(search) ||
+            transaction.category
+              .toLowerCase()
+              .includes(search);
+
+          return (
+            matchesType &&
+            matchesCategory &&
+            matchesSearch
+          );
+
+        }
+      );
+
+    filtered.sort(
+      (a, b) =>
+        new Date(b.date) -
+        new Date(a.date)
+    );
+
+    if (filtered.length === 0) {
+
+      container.innerHTML = `
+        <div class="empty">
+
+          <div class="empty-icon">
+            📭
+          </div>
+
+          <strong>
+            Nenhuma transação encontrada
+          </strong>
+
+          <p style="margin-top:6px;">
+            Adicione sua primeira receita
+            ou despesa.
+          </p>
+
+        </div>
+      `;
+
+      return;
+
+    }
+
+    container.innerHTML =
+      filtered.map(transaction => {
+
+        const isIncome =
+          transaction.type ===
+          "income";
+
+        const sign =
+          isIncome ? "+" : "-";
+
+        const icon =
+          isIncome ? "💰" : "💸";
+
+        const formattedDate =
+          new Date(
+            transaction.date +
+            "T00:00:00"
+          ).toLocaleDateString(
+            "pt-BR"
+          );
+
+        return `
+
+          <div class="transaction">
+
+            <div class="transaction-left">
+
+              <div class="icon ${
+                isIncome
+                  ? "icon-income"
+                  : "icon-expense"
+              }">
+                ${icon}
+              </div>
+
+              <div class="transaction-info">
+
+                <div
+                  class="transaction-description">
+                  ${escapeHTML(
+                    transaction.description
+                  )}
+                </div>
+
+                <div class="transaction-meta">
+                  ${escapeHTML(
+                    transaction.category
+                  )}
+                  • ${formattedDate}
+                </div>
+
+              </div>
+
+            </div>
+
+            <div class="transaction-right">
+
+              <div class="amount ${
+                isIncome
+                  ? "income"
+                  : "expense"
+              }">
+                ${sign}
+                ${formatCurrency(
+                  transaction.amount
+                )}
+              </div>
+
+              <div class="actions">
+
+                <button
+                  class="action-btn"
+                  title="Editar"
+                  onclick="editTransaction(
+                    ${transaction.id}
+                  )">
+                  ✏️
+                </button>
+
+                <button
+                  class="action-btn"
+                  title="Excluir"
+                  onclick="deleteTransaction(
+                    ${transaction.id}
+                  )">
+                  🗑️
+                </button>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        `;
+
+      }).join("");
+
+  }
+
+
+  // ==========================================
+  // FLUXO DE CAIXA
+  // ==========================================
+
+  function getMonthKey(date) {
+
+    const year =
+      date.getFullYear();
+
+    const month =
+      String(
+        date.getMonth() + 1
+      ).padStart(2, "0");
+
+    return `${year}-${month}`;
+
+  }
+
+
+  function getTransactionMonth(transaction) {
+
+    return transaction.date
+      .substring(0, 7);
+
+  }
+
+
+  function getMonthTransactions(date) {
+
+    const key =
+      getMonthKey(date);
+
+    return transactions.filter(
+      transaction =>
+        getTransactionMonth(
+          transaction
+        ) === key
+    );
+
+  }
+
+
+  // ==========================================
+  // ALTERAR MÊS
+  // ==========================================
+
+  function changeFlowMonth(direction) {
+
+    flowMonth.setMonth(
+      flowMonth.getMonth() +
+      direction
+    );
+
+    renderCashFlow();
+
+  }
+
+
+  // ==========================================
+  // NOME DO MÊS
+  // ==========================================
+
+  function getMonthName(date) {
+
+    return date.toLocaleDateString(
+      "pt-BR",
+      {
+        month: "long",
+        year: "numeric"
+      }
+    );
+
+  }
+
+
+  // ==========================================
+  // FLUXO DO MÊS
+  // ==========================================
+
+  function renderCashFlow() {
+
+    const monthTransactions =
+      getMonthTransactions(
+        flowMonth
+      );
+
+    const income =
+      monthTransactions
+        .filter(
+          item =>
+            item.type === "income"
+        )
+        .reduce(
+          (sum, item) =>
+            sum + item.amount,
+          0
+        );
+
+    const expense =
+      monthTransactions
+        .filter(
+          item =>
+            item.type === "expense"
+        )
+        .reduce(
+          (sum, item) =>
+            sum + item.amount,
+          0
+        );
+
+    /*
+      Saldo inicial =
+      tudo que aconteceu antes
+      do mês selecionado.
+    */
+
+    const currentMonthKey =
+      getMonthKey(flowMonth);
+
+    const previousTransactions =
+      transactions.filter(
+        transaction =>
+          getTransactionMonth(
+            transaction
+          ) < currentMonthKey
+      );
+
+    const previousIncome =
+      previousTransactions
+        .filter(
+          item =>
+            item.type === "income"
+        )
+        .reduce(
+          (sum, item) =>
+            sum + item.amount,
+          0
+        );
+
+    const previousExpense =
+      previousTransactions
+        .filter(
+          item =>
+            item.type === "expense"
+        )
+        .reduce(
+          (sum, item) =>
+            sum + item.amount,
+          0
+        );
+
+    const initialBalance =
+      previousIncome -
+      previousExpense;
+
+    const finalBalance =
+      initialBalance +
+      income -
+      expense;
+
+    document
+      .getElementById("selectedMonth")
+      .textContent =
+      getMonthName(flowMonth);
+
+    document
+      .getElementById("flowInitial")
+      .textContent =
+      formatCurrency(
+        initialBalance
+      );
+
+    document
+      .getElementById("flowIncome")
+      .textContent =
+      formatCurrency(income);
+
+    document
+      .getElementById("flowExpense")
+      .textContent =
+      formatCurrency(expense);
+
+    const finalElement =
+      document.getElementById(
+        "flowFinal"
+      );
+
+    finalElement.textContent =
+      formatCurrency(
+        finalBalance
+      );
+
+    finalElement.className =
+      "flow-value " +
+      (
+        finalBalance >= 0
+          ? "positive"
+          : "negative"
+      );
+
+    renderChart();
+
+    renderMonthlyTable();
+
+  }
+
+
+  // ==========================================
+  // ÚLTIMOS 6 MESES
+  // ==========================================
+
+  function getLastSixMonths() {
+
+    const months = [];
+
+    for (
+      let i = 5;
+      i >= 0;
+      i--
+    ) {
+
+      const date =
+        new Date(flowMonth);
+
+      date.setDate(1);
+
+      date.setMonth(
+        date.getMonth() - i
+      );
+
+      months.push(date);
+
+    }
+
+    return months;
+
+  }
+
+
+  // ==========================================
+  // DADOS DOS MESES
+  // ==========================================
+
+  function getMonthlyData() {
+
+    return getLastSixMonths()
+      .map(date => {
+
+        const key =
+          getMonthKey(date);
+
+        const monthTransactions =
+          transactions.filter(
+            transaction =>
+              getTransactionMonth(
+                transaction
+              ) === key
+          );
+
+        const income =
+          monthTransactions
+            .filter(
+              item =>
+                item.type === "income"
+            )
+            .reduce(
+              (sum, item) =>
+                sum + item.amount,
+              0
+            );
+
+        const expense =
+          monthTransactions
+            .filter(
+              item =>
+                item.type === "expense"
+            )
+            .reduce(
+              (sum, item) =>
+                sum + item.amount,
+              0
+            );
+
+        return {
+          date,
+          income,
+          expense,
+          result:
+            income - expense
+        };
+
+      });
+
+  }
+
+
+  // ==========================================
+  // GRÁFICO
+  // ==========================================
+
+  function renderChart() {
+
+    const canvas =
+      document.getElementById(
+        "cashFlowChart"
+      );
+
+    const ctx =
+      canvas.getContext("2d");
+
+    const container =
+      canvas.parentElement;
+
+    const width =
+      container.clientWidth;
+
+    const height =
+      container.clientHeight;
+
+    const ratio =
+      window.devicePixelRatio || 1;
+
+    canvas.width =
+      width * ratio;
+
+    canvas.height =
+      height * ratio;
+
+    canvas.style.width =
+      width + "px";
+
+    canvas.style.height =
+      height + "px";
+
+    ctx.setTransform(
+      ratio,
+      0,
+      0,
+      ratio,
+      0,
+      0
+    );
+
+    ctx.clearRect(
+      0,
+      0,
+      width,
+      height
+    );
+
+    const data =
+      getMonthlyData();
+
+    const maxValue =
+      Math.max(
+        ...data.flatMap(
+          item => [
+            item.income,
+            item.expense
+          ]
+        ),
+        1
+      );
+
+    const padding = {
+      top: 25,
+      right: 20,
+      bottom: 45,
+      left: 60
+    };
+
+    const chartWidth =
+      width -
+      padding.left -
+      padding.right;
+
+    const chartHeight =
+      height -
+      padding.top -
+      padding.bottom;
+
+    // Grade horizontal
+
+    ctx.strokeStyle =
+      "#e5e7eb";
+
+    ctx.lineWidth = 1;
+
+    for (
+      let i = 0;
+      i <= 4;
+      i++
+    ) {
+
+      const y =
+        padding.top +
+        chartHeight -
+        (
+          chartHeight *
+          i /
+          4
+        );
+
+      ctx.beginPath();
+
+      ctx.moveTo(
+        padding.left,
+        y
+      );
+
+      ctx.lineTo(
+        width - padding.right,
+        y
+      );
+
+      ctx.stroke();
+
+      const value =
+        maxValue * i / 4;
+
+      ctx.fillStyle =
+        "#9ca3af";
+
+      ctx.font =
+        "11px Arial";
+
+      ctx.textAlign =
+        "right";
+
+      ctx.fillText(
+        formatShortCurrency(value),
+        padding.left - 8,
+        y + 4
+      );
+
+    }
+
+    const groupWidth =
+      chartWidth /
+      data.length;
+
+    data.forEach(
+      (item, index) => {
+
+        const x =
+          padding.left +
+          groupWidth * index +
+          groupWidth / 2;
+
+        const barWidth =
+          Math.min(
+            24,
+            groupWidth / 4
+          );
+
+        // Receita
+
+        const incomeHeight =
+          (
+            item.income /
+            maxValue
+          ) * chartHeight;
+
+        const incomeX =
+          x - barWidth - 2;
+
+        const incomeY =
+          padding.top +
+          chartHeight -
+          incomeHeight;
+
+        ctx.fillStyle =
+          "#10b981";
+
+        ctx.beginPath();
+
+        ctx.roundRect(
+          incomeX,
+          incomeY,
+          barWidth,
+          incomeHeight,
+          4
+        );
+
+        ctx.fill();
+
+        // Despesa
+
+        const expenseHeight =
+          (
+            item.expense /
+            maxValue
+          ) * chartHeight;
+
+        const expenseX =
+          x + 2;
+
+        const expenseY =
+          padding.top +
+          chartHeight -
+          expenseHeight;
+
+        ctx.fillStyle =
+          "#ef4444";
+
+        ctx.beginPath();
+
+        ctx.roundRect(
+          expenseX,
+          expenseY,
+          barWidth,
+          expenseHeight,
+          4
+        );
+
+        ctx.fill();
+
+        // Nome do mês
+
+        ctx.fillStyle =
+          "#6b7280";
+
+        ctx.font =
+          "11px Arial";
+
+        ctx.textAlign =
+          "center";
+
+        const month =
+          item.date
+            .toLocaleDateString(
+              "pt-BR",
+              { month: "short" }
+            )
+            .replace(".", "");
+
+        ctx.fillText(
+          month,
+          x,
+          height - 17
+        );
+
+      }
+    );
+
+    // Legenda
+
+    ctx.fillStyle =
+      "#10b981";
+
+    ctx.fillRect(
+      padding.left,
+      3,
+      12,
+      12
+    );
+
+    ctx.fillStyle =
+      "#374151";
+
+    ctx.font =
+      "12px Arial";
+
+    ctx.textAlign =
+      "left";
+
+    ctx.fillText(
+      "Entradas",
+      padding.left + 18,
+      13
+    );
+
+    ctx.fillStyle =
+      "#ef4444";
+
+    ctx.fillRect(
+      padding.left + 85,
+      3,
+      12,
+      12
+    );
+
+    ctx.fillStyle =
+      "#374151";
+
+    ctx.fillText(
+      "Saídas",
+      padding.left + 103,
+      13
+    );
+
+  }
+
+
+  function formatShortCurrency(value) {
+
+    if (value >= 1000000) {
+      return "R$ " +
+        (value / 1000000)
+          .toFixed(1) +
+        "M";
+    }
+
+    if (value >= 1000) {
+      return "R$ " +
+        (value / 1000)
+          .toFixed(1) +
+        "k";
+    }
+
+    return "R$ " +
+      Math.round(value);
+
+  }
+
+
+  // ==========================================
+  // TABELA MENSAL
+  // ==========================================
+
+  function renderMonthlyTable() {
+
+    const tbody =
+      document.getElementById(
+        "monthlyFlowTable"
+      );
+
+    const data =
+      getMonthlyData();
+
+    /*
+      Calculamos o saldo acumulado
+      desde o início dos registros.
+    */
+
+    const firstMonth =
+      data[0].date;
+
+    let accumulated =
+      getBalanceBeforeMonth(
+        firstMonth
+      );
+
+    tbody.innerHTML =
+      data.map(item => {
+
+        accumulated +=
+          item.result;
+
+        const resultClass =
+          item.result >= 0
+            ? "flow-positive"
+            : "flow-negative";
+
+        const balanceClass =
+          accumulated >= 0
+            ? "flow-positive"
+            : "flow-negative";
+
+        const monthName =
+          item.date.toLocaleDateString(
+            "pt-BR",
+            {
+              month: "short",
+              year: "numeric"
+            }
+          );
+
+        return `
+
+          <tr>
+
+            <td>
+              ${monthName}
+            </td>
+
+            <td class="flow-positive">
+              ${formatCurrency(
+                item.income
+              )}
+            </td>
+
+            <td class="flow-negative">
+              ${formatCurrency(
+                item.expense
+              )}
+            </td>
+
+            <td class="${resultClass}">
+              ${formatCurrency(
+                item.result
+              )}
+            </td>
+
+            <td class="${balanceClass}">
+              ${formatCurrency(
+                accumulated
+              )}
+            </td>
+
+          </tr>
+
+        `;
+
+      }).join("");
+
+  }
+
+
+  function getBalanceBeforeMonth(date) {
+
+    const key =
+      getMonthKey(date);
+
+    return transactions
+      .filter(
+        transaction =>
+          getTransactionMonth(
+            transaction
+          ) < key
+      )
+      .reduce(
+        (balance, transaction) => {
+
+          if (
+            transaction.type ===
+            "income"
+          ) {
+
+            return balance +
+              transaction.amount;
+
+          }
+
+          return balance -
+            transaction.amount;
+
+        },
+        0
+      );
+
+  }
+
+
+  // ==========================================
+  // SEGURANÇA
+  // ==========================================
+
+  function escapeHTML(text) {
+
+    return String(text)
+      .replace(
+        /&/g,
+        "&amp;"
+      )
+      .replace(
+        /</g,
+        "&lt;"
+      )
+      .replace(
+        />/g,
+        "&gt;"
+      )
+      .replace(
+        /"/g,
+        "&quot;"
+      )
+      .replace(
+        /'/g,
+        "&#039;"
+      );
+
+  }
+
+
+  // ==========================================
+  // MODAL
+  // ==========================================
+
+  document
+    .getElementById("deleteModal")
+    .addEventListener(
+      "click",
+      function(event) {
+
+        if (
+          event.target === this
+        ) {
+
+          closeDeleteModal();
+
+        }
+
+      }
+    );
+
+
+  // ==========================================
+  // REDIMENSIONAMENTO
+  // ==========================================
+
+  window.addEventListener(
+    "resize",
+    function() {
+
+      renderChart();
+
+    }
+  );
+
+
+  // ==========================================
+  // RENDER INICIAL
+  // ==========================================
+
+  function render() {
+
+    renderSummary();
+
+    renderTransactions();
+
+    renderCashFlow();
+
+  }
+
+  render();
+
+</script>
+
+</body>
+</html>
