@@ -3,6 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#6366f1">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Minhas Finanças">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
   <title>Minhas Finanças</title>
 
   <style>
@@ -2276,6 +2283,136 @@
   }
 
   render();
+
+  // ==========================================
+  // PWA / SERVICE WORKER
+  // ==========================================
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", async () => {
+      try {
+        const registration =
+          await navigator.serviceWorker.register(
+            "./service-worker.js"
+          );
+
+        console.log(
+          "Service Worker registrado:",
+          registration.scope
+        );
+
+      } catch (error) {
+        console.error(
+          "Erro ao registrar Service Worker:",
+          error
+        );
+      }
+    });
+  }
+
+  // ==========================================
+  // INSTALAÇÃO DO PWA
+  // ==========================================
+
+  let deferredInstallPrompt = null;
+
+  window.addEventListener(
+    "beforeinstallprompt",
+    (event) => {
+
+      event.preventDefault();
+
+      deferredInstallPrompt = event;
+
+      mostrarBotaoInstalar();
+    }
+  );
+
+  function mostrarBotaoInstalar() {
+
+    if (document.getElementById("installAppButton")) {
+      return;
+    }
+
+    const button =
+      document.createElement("button");
+
+    button.id = "installAppButton";
+
+    button.innerHTML =
+      "📲 Instalar aplicativo";
+
+    button.style.position = "fixed";
+    button.style.bottom = "20px";
+    button.style.right = "20px";
+    button.style.zIndex = "9999";
+    button.style.border = "none";
+    button.style.borderRadius = "12px";
+    button.style.padding = "14px 18px";
+    button.style.background = "#6366f1";
+    button.style.color = "#fff";
+    button.style.fontWeight = "700";
+    button.style.fontSize = "14px";
+    button.style.cursor = "pointer";
+    button.style.boxShadow =
+      "0 8px 25px rgba(0,0,0,.2)";
+
+    button.addEventListener(
+      "click",
+      instalarAplicativo
+    );
+
+    document.body.appendChild(button);
+  }
+
+  async function instalarAplicativo() {
+
+    if (!deferredInstallPrompt) {
+      return;
+    }
+
+    deferredInstallPrompt.prompt();
+
+    const result =
+      await deferredInstallPrompt.userChoice;
+
+    console.log(
+      "Resultado da instalação:",
+      result.outcome
+    );
+
+    deferredInstallPrompt = null;
+
+    const button =
+      document.getElementById(
+        "installAppButton"
+      );
+
+    if (button) {
+      button.remove();
+    }
+  }
+
+  window.addEventListener(
+    "appinstalled",
+    () => {
+
+      console.log(
+        "Minhas Finanças foi instalado."
+      );
+
+      deferredInstallPrompt = null;
+
+      const button =
+        document.getElementById(
+          "installAppButton"
+        );
+
+      if (button) {
+        button.remove();
+      }
+    }
+  );
 
 </script>
 
