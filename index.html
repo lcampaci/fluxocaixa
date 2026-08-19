@@ -537,50 +537,97 @@
       }
     }
 
-    .data-actions {
+    /* ==========================================
+    MENU FIXO INFERIOR
+    ========================================== */
+
+.bottom-menu {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+
+  height: 68px;
+
+  background: rgba(255, 255, 255, .96);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  border-top: 1px solid var(--border);
+
   display: flex;
+  justify-content: center;
+  align-items: stretch;
+
   gap: 10px;
-  margin-top: 20px;
-  flex-wrap: wrap;
+
+  padding: 6px 12px;
+
+  z-index: 90;
+
+  box-shadow:
+    0 -5px 20px rgba(0, 0, 0, .08);
 }
 
-.data-btn {
+.bottom-menu-item {
   border: none;
+  background: transparent;
+
+  color: var(--muted);
+
+  min-width: 110px;
+
   border-radius: 10px;
-  padding: 11px 16px;
-  font-size: 14px;
-  font-weight: 700;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  gap: 3px;
+
+  font-size: 11px;
+  font-weight: 600;
+
   cursor: pointer;
+
   transition: .2s;
 }
 
-.export-btn {
-  background: rgba(255,255,255,.18);
-  color: white;
-  border: 1px solid rgba(255,255,255,.3);
-}
-
-.export-btn:hover {
-  background: rgba(255,255,255,.28);
-}
-
-.import-btn {
-  background: white;
+.bottom-menu-item:hover {
+  background: #f3f4f6;
   color: var(--primary);
 }
 
-.import-btn:hover {
-  background: #f3f4f6;
+.bottom-menu-item:active {
+  transform: scale(.95);
 }
 
+.bottom-menu-icon {
+  font-size: 21px;
+  line-height: 1;
+}
+
+
+/* Evita que o menu cubra
+   o conteúdo no final da página */
+
+body {
+  padding-bottom: 75px;
+}
+
+
 @media (max-width: 550px) {
-  .data-actions {
-    flex-direction: column;
+
+  .bottom-menu {
+    height: 70px;
+    padding-bottom: max(6px, env(safe-area-inset-bottom));
   }
 
-  .data-btn {
-    width: 100%;
+  .bottom-menu-item {
+    min-width: 90px;
   }
+
 }
   </style>
 </head>
@@ -591,22 +638,6 @@
   <div class="header-content">
     <h1>💰 Minhas Finanças</h1>
     <p>Controle suas receitas, despesas e fluxo de caixa.</p>
-    <div class="data-actions">
-  <button class="data-btn export-btn" onclick="exportJSON()">
-    📤 Exportar JSON
-  </button>
-
-  <button class="data-btn import-btn" onclick="document.getElementById('importFile').click()">
-    📥 Importar JSON
-  </button>
-
-  <input
-    type="file"
-    id="importFile"
-    accept=".json,application/json"
-    style="display:none"
-    onchange="importJSON(event)">
-</div>
   </div>
 </header>
 
@@ -2722,6 +2753,35 @@ function importJSON(event) {
   );
 
 </script>
+<!-- MENU FIXO INFERIOR -->
 
+<div class="bottom-menu">
+
+  <button
+    class="bottom-menu-item"
+    onclick="exportJSON()">
+
+    <span class="bottom-menu-icon">📤</span>
+    <span>Exportar</span>
+
+  </button>
+
+  <button
+    class="bottom-menu-item"
+    onclick="document.getElementById('importFile').click()">
+
+    <span class="bottom-menu-icon">📥</span>
+    <span>Importar</span>
+
+  </button>
+
+  <input
+    type="file"
+    id="importFile"
+    accept=".json,application/json"
+    style="display:none"
+    onchange="importJSON(event)">
+
+</div>
 </body>
 </html>
