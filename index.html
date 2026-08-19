@@ -536,6 +536,52 @@
         grid-template-columns: 1fr;
       }
     }
+
+    .data-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.data-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 11px 16px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: .2s;
+}
+
+.export-btn {
+  background: rgba(255,255,255,.18);
+  color: white;
+  border: 1px solid rgba(255,255,255,.3);
+}
+
+.export-btn:hover {
+  background: rgba(255,255,255,.28);
+}
+
+.import-btn {
+  background: white;
+  color: var(--primary);
+}
+
+.import-btn:hover {
+  background: #f3f4f6;
+}
+
+@media (max-width: 550px) {
+  .data-actions {
+    flex-direction: column;
+  }
+
+  .data-btn {
+    width: 100%;
+  }
+}
   </style>
 </head>
 
@@ -545,6 +591,22 @@
   <div class="header-content">
     <h1>💰 Minhas Finanças</h1>
     <p>Controle suas receitas, despesas e fluxo de caixa.</p>
+    <div class="data-actions">
+  <button class="data-btn export-btn" onclick="exportJSON()">
+    📤 Exportar JSON
+  </button>
+
+  <button class="data-btn import-btn" onclick="document.getElementById('importFile').click()">
+    📥 Importar JSON
+  </button>
+
+  <input
+    type="file"
+    id="importFile"
+    accept=".json,application/json"
+    style="display:none"
+    onchange="importJSON(event)">
+</div>
   </div>
 </header>
 
@@ -2283,6 +2345,251 @@
   }
 
   render();
+
+  // ==========================================
+// EXPORTAR JSON
+// ==========================================
+
+function exportJSON() {
+
+  if (transactions.length === 0) {
+
+    alert("Não há transações para exportar.");
+
+    return;
+  }
+
+  const backup = {
+    app: "Minhas Finanças",
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    transactions: transactions
+  };
+
+  const json =
+    JSON.stringify(
+      backup,
+      null,
+      2
+    );
+
+  const blob =
+    new Blob(
+      [json],
+      {
+        type: "application/json"
+      }
+    );
+
+  const url =
+    URL.createObjectURL(blob);
+
+  const link =
+    document.createElement("a");
+
+  const date =
+    new Date()
+      .toISOString()
+      .slice(0, 10);
+
+  link.href = url;
+
+  link.download =
+    `minhas-financas-backup-${date}.json`;
+
+  document.body.appendChild(link);
+
+  link.click();
+
+  link.remove();
+
+  URL.revokeObjectURL(url);
+
+}
+
+
+// ==========================================
+// IMPORTAR JSON
+// ==========================================
+
+function importJSON(event) {
+
+  const file =
+    event.target.files[0];
+
+  if (!file) {
+    return;
+  }
+
+  const reader =
+    new FileReader();
+
+  reader.onload =
+    function(e) {
+
+      try {
+
+        const data =
+          JSON.parse(e.target.result);
+
+        // Aceita o formato novo:
+        // { transactions: [...] }
+        //
+        // e também um JSON contendo
+        // diretamente um array.
+
+        const importedTransactions =
+          Array.isArray(data)
+            ? data
+            : data.transactions;
+
+        if (
+          !Array.isArray(
+            importedTransactions
+          )
+        ) {
+
+          throw new Error(
+            "Formato inválido"
+          );
+
+        }
+
+        // Validação básica
+        const valid =
+          importedTransactions.every(
+            transaction => {
+
+              return (
+                transaction &&
+                (
+                  transaction.type ===
+                  "income" ||
+                  transaction.type ===
+                  "expense"
+                ) &&
+                typeof transaction.description ===
+                  "string" &&
+                typeof transaction.amount ===
+                  "number" &&
+                !isNaN(transaction.amount) &&
+                typeof transaction.category ===
+                  "string" &&
+                typeof transaction.date ===
+                  "string"
+              );
+
+            }
+          );
+
+        if (!valid) {
+
+          throw new Error(
+            "Os dados das transações são inválidos."
+          );
+
+        }
+
+        const confirmed =
+          confirm(
+            `Foram encontradas ${importedTransactions.length} transações.\n\n` +
+            "A importação substituirá os dados atuais.\n\n" +
+            "Deseja continuar?"
+          );
+
+        if (!confirmed) {
+          return;
+        }
+
+        transactions =
+          importedTransactions.map(
+            transaction => ({
+
+              id:
+                transaction.id ||
+                Date.now() +
+                Math.random(),
+
+              type:
+                transaction.type,
+
+              description:
+                transaction.description,
+
+              amount:
+                Number(
+                  transaction.amount
+                ),
+
+              category:
+                transaction.category,
+
+              date:
+                transaction.date
+
+            })
+          );
+
+        saveTransactions();
+
+        // Limpa filtros
+        document.getElementById(
+          "filterType"
+        ).value = "all";
+
+        document.getElementById(
+          "filterCategory"
+        ).value = "all";
+
+        document.getElementById(
+          "search"
+        ).value = "";
+
+        resetForm();
+
+        render();
+
+        alert(
+          "Dados importados com sucesso!"
+        );
+
+      } catch (error) {
+
+        console.error(
+          "Erro ao importar JSON:",
+          error
+        );
+
+        alert(
+          "Não foi possível importar o arquivo.\n\n" +
+          "Verifique se ele é um backup válido do Minhas Finanças."
+        );
+
+      } finally {
+
+        // Permite selecionar novamente
+        // o mesmo arquivo depois.
+
+        event.target.value = "";
+
+      }
+
+    };
+
+  reader.onerror =
+    function() {
+
+      alert(
+        "Não foi possível ler o arquivo."
+      );
+
+      event.target.value = "";
+
+    };
+
+  reader.readAsText(file);
+
+}
 
   // ==========================================
   // PWA / SERVICE WORKER
